@@ -1,0 +1,14 @@
+{
+  "usdcMint": "Hb3zDjwn62bEh7dnBDjdFA8ewyXauCuU8xMc8nHRcsuo",
+  "markets": {
+    "SOL": {
+      "mint": "E3rMjaoZ737xpzSga3np89xb9RqbxswexYS2qXDYRvhA"
+    },
+    "NVDA": {
+      "mint": "5Sgex7rBa3EyL6R3GTMEyW7DVsiKkCFBD6EDKWMDsPVv"
+    }
+  },
+  "buyer": "2rxVgsLzSqkd9EibMD7y6tpjAiVEmeA4AEeK98612xkB",
+  "seller": "3u4CPZBvYwzVeMYwddfeaRMBBA7ByGja6bfDCtpig7oA",
+  "solMint": "E3rMjaoZ737xpzSga3np89xb9RqbxswexYS2qXDYRvhA"
+}

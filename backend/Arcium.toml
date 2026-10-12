@@ -1,0 +1,14 @@
+[localnet]
+# number of nodes in the single cluster of the localnet
+nodes = 2
+nodes_ips = [
+  [172, 20, 0, 100],
+  [172, 20, 0, 101]
+]
+localnet_timeout_secs = 60
+backends = ["Cerberus"]
+
+# Devnet cluster offset. 456 = Arcium devnet cluster (see docs.arcium.com/developers/deployment).
+# `arcium test --cluster devnet` and `arcium deploy --cluster-offset 456` use this.
+[clusters.devnet]
+offset = 456

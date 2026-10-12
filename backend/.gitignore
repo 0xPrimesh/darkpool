@@ -1,0 +1,20 @@
+.anchor
+.DS_Store
+# Build output, except what a clone needs to run without a Rust/Arcium toolchain:
+# program keypairs (ids), compiled programs, IDLs and TypeScript types.
+target/**
+!target/deploy/
+!target/deploy/*-keypair.json
+!target/deploy/*.so
+!target/idl/
+!target/idl/*.json
+!target/types/
+!target/types/*.ts
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+encrypted-ixs/arcis_temp_target
+encrypted-ixs/src/main.rs
+artifacts/
+.env
