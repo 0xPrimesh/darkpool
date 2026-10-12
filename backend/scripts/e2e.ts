@@ -5,7 +5,7 @@
  *   yarn e2e                       # bid 152, ask 148, qty 1 SOL  -> match
  *   yarn e2e 148 152               # bid 148, ask 152             -> no match, refund
  *   yarn e2e 152 148 2.5           # qty 2.5 SOL
- *   MARKET=NVDA yarn e2e 190 180   # another market (needs HERMES_API_KEY on devnet)
+ *   MARKET=XAU yarn e2e 4200 4100 0.1   # gold (needs HERMES_API_KEY; qty at most its tier)
  *
  * The buyer is the first depositor (slot A) and the seller the second (slot B)
  * only because this script submits them in that order; on-chain nothing says

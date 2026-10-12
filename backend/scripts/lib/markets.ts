@@ -3,15 +3,22 @@
  *
  * The darkpool program only accepts a price account that carries the feed id
  * registered for the batch's pool (`MarketConfig` PDA), so a batch in the
- * NVDA pool can never be priced with SOL/USD and vice versa.
+ * gold pool can never be priced with SOL/USD and vice versa.
  *
  * Every base mock has 9 decimals, so the circuit and the settlement program
  * are unchanged: prices are USDC (6 dp) per whole base unit.
  *
  * Price accounts are Pyth push-oracle PDAs (shard 0 of the upgraded push
- * oracle program). SOL/USD's is sponsored by Pyth on devnet; the equity
- * feeds are not, so the coordinator keeps theirs fresh itself through Hermes
- * (HERMES_API_KEY) using the same permissionless `update_price_feed` path.
+ * oracle program). SOL/USD's is sponsored by Pyth on devnet (pushed roughly
+ * once a minute). XAU/USD's exists on devnet but nobody keeps it fresh, so
+ * the coordinator maintains it itself through Hermes (HERMES_API_KEY) using
+ * the same permissionless `update_price_feed` path, and only while the
+ * metals market is open (Hermes' listing carries the schedule). Hermes
+ * entitlements are per asset class: the key must cover metals.
+ *
+ * Each market has its own collateral tier (`bucket`, in whole base units):
+ * every party escrows `bucket` base-mock plus `bucket x reference x
+ * ESCROW_BOUND_PCT` USDC-mock, so one ounce of gold would need ~5k USDC.
  */
 import { PublicKey } from "@solana/web3.js";
 import {
@@ -22,7 +29,8 @@ import { Ctx, Deployment } from "./config";
 import { Mints, ensurePool, poolPda } from "./settlement";
 import { ensureMarket, marketPda } from "./arcium";
 
-export type MarketKind = "crypto" | "equity";
+/** Hermes `asset_type` values. Everything but crypto has trading hours. */
+export type MarketKind = "crypto" | "equity" | "metal" | "fx";
 
 export interface MarketDef {
   /** Ticker shown in the UI and used in API routes, e.g. "SOL". */
@@ -32,22 +40,28 @@ export interface MarketDef {
   /** Pyth feed id, hex without 0x. */
   feedId: string;
   /** Hermes `display_symbol` + asset_type, for the public market-hours lookup. */
-  hermesQuery: { query: string; assetType: "crypto" | "equity" };
+  hermesQuery: { query: string; assetType: MarketKind };
   /** True when Pyth itself keeps the devnet push account fresh. */
   sponsored: boolean;
   /** Push-oracle shard whose account the program is handed. */
   shard: number;
   decimals: 9;
+  /** Collateral tier in whole base units (env `<SYMBOL>_BUCKET` overrides). */
+  bucket: number;
 }
 
 export const SOL_USD_FEED_ID =
   "ef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d";
-/** Equity.US.NVDA/USD: regular session (09:30-16:00 ET). */
-export const NVDA_USD_FEED_ID =
-  "b1073854ed24cbc755dc527418f52b7d271f6cc967bbf8d8129112b18860a593";
-/** Equity.Index.NVDA/USD: Pyth's 24/7 NVDA index, if your Hermes plan serves it. */
-export const NVDA_247_FEED_ID =
-  "a470c4ac46f44b547b2cba52338f311fb642b79375ce5f0cfd5cb5b99227b852";
+/** Metal.XAU/USD: gold, one troy ounce in USD. */
+export const XAU_USD_FEED_ID =
+  "765d2ba906dbc32ca17cc11f5310a89e9ee1f6420508c63861f2f8ba4ee34bb2";
+
+function envBucket(symbol: string, dflt: number): number {
+  const raw = process.env[`${symbol}_BUCKET`];
+  const n = raw === undefined ? dflt : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) throw new Error(`${symbol}_BUCKET must be a positive number`);
+  return n;
+}
 
 export const MARKET_DEFS: MarketDef[] = [
   {
@@ -59,28 +73,35 @@ export const MARKET_DEFS: MarketDef[] = [
     sponsored: true,
     shard: 0,
     decimals: 9,
+    bucket: envBucket("SOL", 1),
   },
   {
-    symbol: "NVDA",
-    name: "NVIDIA",
-    kind: "equity",
-    feedId: process.env.NVDA_FEED_ID ?? NVDA_USD_FEED_ID,
-    hermesQuery: { query: "NVDA", assetType: "equity" },
+    symbol: "XAU",
+    name: "Gold",
+    kind: "metal",
+    feedId: process.env.XAU_FEED_ID ?? XAU_USD_FEED_ID,
+    hermesQuery: { query: "XAU/USD", assetType: "metal" },
     sponsored: false,
     shard: 0,
     decimals: 9,
+    bucket: envBucket("XAU", 0.1),
   },
 ];
 
-/** Markets enabled for this deployment (MARKETS=SOL,NVDA). */
+/** Markets enabled for this deployment (MARKETS=SOL,XAU). */
 export function enabledMarketDefs(): MarketDef[] {
-  const want = (process.env.MARKETS ?? "SOL,NVDA")
+  const want = (process.env.MARKETS ?? "SOL,XAU")
     .split(",")
     .map((s) => s.trim().toUpperCase())
     .filter(Boolean);
   const defs = MARKET_DEFS.filter((d) => want.includes(d.symbol));
   if (!defs.length) throw new Error(`MARKETS=${process.env.MARKETS} matches no known market`);
   return defs;
+}
+
+/** Collateral tier in base-mock lamports (9 dp). */
+export function bucketLamports(def: MarketDef): bigint {
+  return BigInt(Math.round(def.bucket * 1e9));
 }
 
 export function pythPushAccount(def: MarketDef): PublicKey {

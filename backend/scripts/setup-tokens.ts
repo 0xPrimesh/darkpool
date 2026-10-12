@@ -1,7 +1,7 @@
 /**
  * Devnet setup, idempotent (re-run it after adding a market):
  *   - create the USDC-mock mint and one base mock mint per enabled market
- *     (SOL-mock, NVDA-mock, ...), reusing any already in deployment.json
+ *     (SOL-mock, XAU-mock, ...), reusing any already in deployment.json
  *   - create demo buyer/seller keypairs under backend/.keys/
  *   - fund them with SOL for fees and with every mock token (both buckets)
  *   - create each market's settlement pool and register its Pyth feed

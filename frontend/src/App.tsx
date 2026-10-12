@@ -339,7 +339,7 @@ export default function App() {
         <div className="brand">
           <Mark />
           <div>
-            <div className="word">Darkpool</div>
+            <div className="word">PriMesh</div>
             <div className="sub">
               Encrypted matching · Arcium MPC · Solana{" "}
               {status ? status.cluster : ""}
@@ -871,7 +871,7 @@ export default function App() {
                 <b>Oracle verified on-chain</b>
                 The reference price is read from Pyth inside the program:
                 owner, feed, confidence and age are checked. The feed must be
-                the one registered for the market's pool, so an NVDA batch can
+                the one registered for the market's pool, so a gold batch can
                 never be priced with SOL/USD.
               </div>
             </div>
@@ -1204,18 +1204,12 @@ function Ring({ fraction, seconds }: { fraction: number; seconds: number }) {
 }
 
 function Mark() {
-  return (
-    <svg className="mark" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-      <rect x="3" y="3" width="18" height="18" rx="4" stroke="#4f46e5" strokeWidth="2" fill="#eef0ff" />
-      <rect x="13" y="13" width="18" height="18" rx="4" stroke="#4f46e5" strokeWidth="2" fill="#ffffff" />
-      <rect x="13" y="13" width="8" height="8" fill="#4f46e5" />
-    </svg>
-  );
+  return <img className="mark" src="/primesh.png" alt="" aria-hidden="true" />;
 }
 
 /**
  * Market badges. SOL: the three-bar Solana mark in the desk's teal/violet.
- * NVDA: NVIDIA's green tile with a simplified eye glyph.
+ * XAU: a gold tile with the element symbol Au.
  */
 function MarketIcon({ symbol, size = 20 }: { symbol: string; size?: number }) {
   const common = {
@@ -1240,28 +1234,29 @@ function MarketIcon({ symbol, size = 20 }: { symbol: string; size?: number }) {
         />
       </svg>
     );
-  if (symbol === "NVDA")
+  if (symbol === "XAU")
     return (
       <svg {...common} viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="7" fill="#76b900" />
-        <path
-          d="M16 9.5c-5.4 0-9.3 4-10.8 6.5 1.5 2.5 5.4 6.5 10.8 6.5s9.3-4 10.8-6.5C25.3 13.5 21.4 9.5 16 9.5z"
-          stroke="#fff"
-          strokeWidth="2.1"
-        />
-        <path
-          d="M16 12.6c-1.9 0-3.4 1.5-3.4 3.4s1.5 3.4 3.4 3.4c1.2 0 2.3-.6 2.9-1.6"
-          stroke="#fff"
-          strokeWidth="2.1"
-          strokeLinecap="round"
-        />
-      </svg>
-    );
-  if (symbol === "TSLA")
-    return (
-      <svg {...common} viewBox="0 0 32 32" fill="none">
-        <rect width="32" height="32" rx="7" fill="#cc0000" />
-        <path d="M8 10h16v3.4h-6.2V24h-3.6V13.4H8z" fill="#fff" />
+        <defs>
+          <linearGradient id="xaug" x1="0" y1="0" x2="32" y2="32">
+            <stop offset="0" stopColor="#f6d365" />
+            <stop offset="0.55" stopColor="#d4a017" />
+            <stop offset="1" stopColor="#a8780a" />
+          </linearGradient>
+        </defs>
+        <rect width="32" height="32" rx="7" fill="url(#xaug)" />
+        <path d="M6 23.5l3-7h14l3 7z" fill="#fff" fillOpacity="0.22" />
+        <text
+          x="16"
+          y="20.6"
+          textAnchor="middle"
+          fontSize="13.5"
+          fontWeight="800"
+          fill="#fff"
+          fontFamily="Manrope, 'Segoe UI', sans-serif"
+        >
+          Au
+        </text>
       </svg>
     );
   return (

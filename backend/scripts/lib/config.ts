@@ -105,7 +105,7 @@ export function ctxFromWorkspace(): Ctx {
 /** deployment.json, normalised. Older files only had `solMint`. */
 export interface Deployment {
   usdcMint: string;
-  /** Base mock mint per market symbol (SOL, NVDA, ...). */
+  /** Base mock mint per market symbol (SOL, XAU, ...). */
   markets: Record<string, { mint: string }>;
   buyer: string;
   seller: string;

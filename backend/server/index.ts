@@ -20,7 +20,7 @@
  *
  * Endpoints
  *   GET  /status                 config + MXE pubkey + markets + current batches
- *   GET  /events                 SSE stream: { now, markets: { SOL: state, NVDA: state } }
+ *   GET  /events                 SSE stream: { now, markets: { SOL: state, XAU: state } }
  *   GET  /balance/:wallet        SOL + every mock token balance
  *   POST /faucet  {wallet}       fund a wallet with SOL for fees + all mock tokens (demo)
  *   POST /order/prepare {wallet, commitment, market}
@@ -76,6 +76,7 @@ import {
   ReferencePrice,
 } from "../scripts/lib/price";
 import {
+  bucketLamports,
   ensureMarkets,
   loadMarkets,
   Market,
@@ -90,10 +91,6 @@ if (!markets.length)
 const usdcMint = new PublicKey(dep.usdcMint);
 const WINDOW_MS = Number(process.env.BATCH_WINDOW_MS ?? 30_000);
 const PREPARE_TTL_MS = 90_000;
-/** Collateral tier: every party escrows this many base units (and the matching USDC bucket). */
-const BASE_BUCKET = BigInt(
-  Math.round(Number(process.env.SOL_BUCKET ?? "1") * 1e9)
-);
 /** Keep a self-maintained (non-sponsored) feed this fresh while its market is open. */
 const SELF_REFRESH_MS = Number(process.env.PYTH_SELF_REFRESH_MS ?? 45_000);
 
@@ -185,7 +182,12 @@ class Engine {
   };
   hours: MarketHours = { isOpen: true, nextOpen: null, nextClose: null, fetchedAt: 0 };
 
-  constructor(public m: Market) {}
+  /** Collateral tier in base lamports: per market, so gold's tier can be 0.1 oz. */
+  readonly bucket: bigint;
+
+  constructor(public m: Market) {
+    this.bucket = bucketLamports(m.def);
+  }
 
   get symbol() {
     return this.m.symbol;
@@ -238,10 +240,10 @@ class Engine {
         tradable: false,
         reason: `Reference is ${age}s old and the coordinator has no HERMES_API_KEY to refresh it.`,
       };
-    if (this.m.def.kind === "equity" && !this.hours.isOpen)
+    if (this.m.def.kind !== "crypto" && !this.hours.isOpen)
       return {
         tradable: false,
-        reason: `${this.m.def.name} is not trading: the ${this.symbol}/USD feed only publishes during US market hours${
+        reason: `${this.m.def.name} is not trading: the ${this.symbol}/USD feed only publishes while its market is open${
           this.hours.nextOpen ? ` (opens ${new Date(this.hours.nextOpen * 1000).toUTCString()})` : ""
         }.`,
       };
@@ -288,8 +290,8 @@ class Engine {
       tradable: a.tradable,
       untradableReason: a.reason,
       tier: {
-        solBucket: fmt(BASE_BUCKET, 9),
-        solBucketLamports: BASE_BUCKET.toString(),
+        solBucket: fmt(this.bucket, 9),
+        solBucketLamports: this.bucket.toString(),
       },
       batch: b,
       steps: this.steps,
@@ -332,7 +334,7 @@ class Engine {
     if (reference.price === 0n)
       throw new Error(`${this.symbol}: ${reference.note ?? "no reference price"}`);
     this.latestPrice = reference;
-    const { solBucket, usdcBucket } = bucketsFor(BASE_BUCKET, reference.price);
+    const { solBucket, usdcBucket } = bucketsFor(this.bucket, reference.price);
     const createSig = await createBatch(ctx, id, this.m.mints, solBucket, usdcBucket);
     const now = Date.now();
     const b: Batch = {
@@ -487,7 +489,7 @@ function marketInfo(e: Engine) {
     feedId: m.def.feedId,
     priceAccount: m.priceAccount.toBase58(),
     sponsored: m.def.sponsored,
-    solBucket: fmt(BASE_BUCKET, 9),
+    solBucket: fmt(bucketLamports(m.def), 9),
   };
 }
 
@@ -503,7 +505,7 @@ app.get("/status", (_req, res) => {
     configuredPriceSource: configuredSource(),
     hermesConfigured: !!HERMES_API_KEY,
     escrowBoundPct: ESCROW_BOUND_PCT.toString(),
-    solBucket: fmt(BASE_BUCKET, 9),
+    solBucket: fmt(bucketLamports(markets[0].def), 9),
     windowMs: WINDOW_MS,
     mxePublicKey: Buffer.from(mxePublicKey).toString("hex"),
     programs: {
@@ -721,7 +723,7 @@ const port = Number(process.env.PORT ?? 8787);
       `darkpool coordinator on http://localhost:${port}  cluster=${ctx.cluster} offset=${ctx.clusterOffset} window=${WINDOW_MS}ms`
     );
     console.log(
-      `tier ${fmt(BASE_BUCKET, 9)} base units, USDC bucket = tier x ref x ${ESCROW_BOUND_PCT}%; hermes key ${
+      `tiers ${markets.map((m) => `${m.symbol} ${m.def.bucket}`).join(", ")}; USDC bucket = tier x ref x ${ESCROW_BOUND_PCT}%; hermes key ${
         HERMES_API_KEY ? "set" : "NOT set (only sponsored feeds can match)"
       }`
     );

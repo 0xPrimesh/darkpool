@@ -13,7 +13,7 @@
 //!     with owner / feed / staleness / confidence checks, and is never an
 //!     instruction argument. Which feed is the right one for a batch comes
 //!     from the `MarketConfig` registered for the batch's settlement pool
-//!     (SOL/USD for the SOL-mock pool, NVDA/USD for the NVDA-mock pool, ...);
+//!     (SOL/USD for the SOL-mock pool, XAU/USD for the XAU-mock pool, ...);
 //!   * the collateral buckets come from the `Batch`, not from the caller.
 //!
 //! The callback writes the revealed fill into a `MatchResult` PDA seeded by

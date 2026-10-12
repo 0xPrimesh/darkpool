@@ -1,4 +1,4 @@
-# Dark Pool on Solana: Technical Design
+# PriMesh (dark pool on Solana): Technical Design
 
 **Status:** Hackathon design doc · **As of:** 2026-10-10 (revised after the devnet transaction review) · **Target:** Solana devnet + Arcium devnet cluster (offset 456)
 
@@ -113,10 +113,12 @@ with a batch window; in Phase 3 its payout leg targets stealth addresses.
 (`<base>-mock` / `USDC-mock`) plus one Pyth feed. The darkpool program keeps a `MarketConfig` PDA per
 pool (`register_market`, permissionless, write-once) holding the feed id, and `match_orders` takes it
 alongside the price account: `market.pool == batch.pool` and `price.feed_id == market.feed_id` are
-enforced on-chain, so an NVDA batch can never be priced with SOL/USD. Base mocks all have 9 dp, so the
-circuit and settlement math are market-agnostic. Shipped markets: `SOL` (sponsored Pyth push account on
-devnet) and `NVDA` (no sponsor on devnet: the coordinator writes Hermes updates into the feed's push
-account itself; the regular equity feed only publishes during US market hours). The coordinator runs an
+enforced on-chain, so a gold batch can never be priced with SOL/USD. Base mocks all have 9 dp, so the
+circuit and settlement math are market-agnostic. Shipped markets: `SOL` (Pyth-sponsored push account on
+devnet, pushed about once a minute) and `XAU`, gold (push account exists on devnet but nobody sponsors
+it, so the coordinator writes Hermes updates into it itself and honours the metals schedule from
+Hermes' listing). Each market has its own collateral tier (`<SYMBOL>_BUCKET`; gold's is 0.1 oz). Hermes
+entitlements are per asset class, so the key must cover the market's class. The coordinator runs an
 independent batch engine per market and the trade book is split by the batch's pool.
 
 > **Honest caveat:** once a batch settles, the netting amounts reveal who bought and how much. Deposits

@@ -1,5 +1,5 @@
 /**
- * Mock SPL tokens for devnet/localnet: base mocks (SOL-mock, NVDA-mock; 9 dp)
+ * Mock SPL tokens for devnet/localnet: base mocks (SOL-mock, XAU-mock; 9 dp)
  * and USDC-mock (6 dp).
  */
 import { Keypair, PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from "@solana/web3.js";

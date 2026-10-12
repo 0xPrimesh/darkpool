@@ -287,13 +287,13 @@ describe("darkpool", () => {
     const b = encryptOrder(mxePk, { isBuy: false, price: 148_000_000n, qty: QTY });
     await deposit(ctx, batchId, mints, buyer, orderCommitment(a), buyer.publicKey);
     await deposit(ctx, batchId, mints, seller, orderCommitment(b), seller.publicKey);
-    // A perfectly fresh, well-formed NVDA/USD account handed to a SOL batch.
-    const NVDA = MARKET_DEFS[1].feedId;
-    await setMockPrice(ctx, NVDA, 185_000_000n);
+    // A perfectly fresh, well-formed XAU/USD account handed to a SOL batch.
+    const XAU = MARKET_DEFS[1].feedId;
+    await setMockPrice(ctx, XAU, 4_167_000_000n);
 
     let err = "";
     try {
-      await queueMatch(ctx, batchId, a, b, mockPricePda(ctx, NVDA), market.pool);
+      await queueMatch(ctx, batchId, a, b, mockPricePda(ctx, XAU), market.pool);
     } catch (e: any) {
       err = String(e?.message ?? e);
     }

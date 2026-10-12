@@ -272,7 +272,7 @@ export async function ensureReferencePrice(ctx: Ctx, m: Market): Promise<Referen
     if (ageSec(fresh) > ON_CHAIN_MAX_AGE_SEC)
       throw new Error(
         `${m.symbol}: Hermes' latest update is ${ageSec(fresh)}s old` +
-          (m.def.kind === "equity" ? " (market closed?)" : "") +
+          (m.def.kind !== "crypto" ? " (market closed?)" : "") +
           "; the program would reject it"
       );
     return fresh;
@@ -326,8 +326,8 @@ const hoursCache = new Map<string, MarketHours>();
 
 /**
  * Trading schedule from Hermes' public feed listing (no API key needed).
- * Equity feeds only publish while their exchange is open, so outside those
- * hours the on-chain staleness check makes the market untradable.
+ * Equity, metal and FX feeds only publish while their market is open, so
+ * outside those hours the on-chain staleness check makes the market untradable.
  */
 export async function getMarketHours(def: MarketDef): Promise<MarketHours> {
   if (def.kind === "crypto")

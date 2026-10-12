@@ -94,7 +94,7 @@ pub fn to_micro(price: i64, exponent: i32) -> Result<u64> {
 }
 
 /// Parse and validate a Pyth price account for `feed_id` (the market's feed,
-/// e.g. SOL/USD or NVDA/USD). `allow_self_owned` lets a mock account owned by
+/// e.g. SOL/USD or XAU/USD). `allow_self_owned` lets a mock account owned by
 /// this program through; the caller only sets it when the `mock-oracle`
 /// feature is compiled in.
 pub fn read_price_feed(

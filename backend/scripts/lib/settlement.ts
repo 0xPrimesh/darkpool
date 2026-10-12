@@ -17,7 +17,7 @@ import { Ctx } from "./config";
 
 const SYSVAR_RENT = anchor.web3.SYSVAR_RENT_PUBKEY;
 
-/** A market's mint pair. `solMint` is the base mock (SOL-mock, NVDA-mock, ...). */
+/** A market's mint pair. `solMint` is the base mock (SOL-mock, XAU-mock, ...). */
 export interface Mints {
   solMint: PublicKey;
   usdcMint: PublicKey;

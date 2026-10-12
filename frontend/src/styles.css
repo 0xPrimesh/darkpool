@@ -61,8 +61,8 @@ code { font-family: var(--mono); font-size: 0.9em; background: var(--bg-2); padd
   padding: 22px 0 18px; flex-wrap: wrap;
 }
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand .mark { width: 38px; height: 38px; flex: 0 0 38px; filter: drop-shadow(0 6px 12px rgba(79, 70, 229, 0.25)); }
-.brand .word { font-weight: 800; font-size: 19px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text); }
+.brand .mark { width: 38px; height: 38px; flex: 0 0 38px; border-radius: 10px; display: block; object-fit: cover; box-shadow: 0 6px 14px rgba(15, 23, 42, 0.22); }
+.brand .word { font-weight: 800; font-size: 19px; letter-spacing: 0.02em; color: var(--text); }
 .brand .sub { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
 .pill {
   display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 11px;

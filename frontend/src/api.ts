@@ -28,7 +28,7 @@ export interface Step {
 export interface MarketInfo {
   symbol: string;
   name: string;
-  kind: "crypto" | "equity";
+  kind: "crypto" | "equity" | "metal" | "fx";
   baseMint: string;
   pool: string;
   marketConfig: string;
